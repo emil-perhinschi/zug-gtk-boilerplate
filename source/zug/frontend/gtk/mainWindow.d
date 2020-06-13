@@ -1,4 +1,4 @@
-module zug.frontend.gtk.main_window;
+module zug.frontend.gtk.mainWindow;
 
 import gtk.MainWindow;
 import gtk.Main;
