@@ -1,0 +1,7 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"gtk-d": "3.9.0",
+		"zug-tap": "0.1.1"
+	}
+}
