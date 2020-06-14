@@ -12,3 +12,5 @@ zug-gtk-frontend-test-*
 *.o
 *.obj
 *.lst
+zug-gtk-boilerplate
+

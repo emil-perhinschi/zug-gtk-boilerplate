@@ -14,6 +14,7 @@ import std.typecons;
 class AppMainWindow : MainWindow
 {
     string title = "Test main window";
+    Box mainViewport;
 
     this() 
     {
@@ -24,36 +25,96 @@ class AppMainWindow : MainWindow
         Box mainBox = new Box(Orientation.VERTICAL, 10);         
         this.add(mainBox);
 
-        MenuBar menuBar = new MenuBar();
-        mainBox.packStart(menuBar, false, false, 0);
+        buildMenus(mainBox);
 
-        MenuItem fileMenuHeader = new MenuItem("File");
-        menuBar.append(fileMenuHeader);
+        this.mainViewport = new Box(Orientation.VERTICAL, 10);
+        bool expand = true;
+        bool fill = true;
+        uint padding = 10;
+        mainBox.packStart(this.mainViewport, expand, fill, padding);
 
         Button button = new Button("Show size");
         button.addOnClicked(delegate void(Button b) { this.showSize(b); });
         mainBox.add(button);
-
-        Menu fileMenu = new Menu();
-        fileMenuHeader.setSubmenu(fileMenu);
-
-        MenuItem fileMenuSave = new MenuItem("Save");
-        fileMenuSave.addOnActivate( (MenuItem i) => this.sayHi("save ...") );
-        fileMenu.append(fileMenuSave);
-
-        MenuItem fileMenuLoad = new MenuItem("Load");
-        fileMenuLoad.addOnActivate( (MenuItem i ) => this.sayHi("load ...") );
-        fileMenu.append(fileMenuLoad);
-
-        MenuItem fileMenuExit = new MenuItem("Exit");
-        fileMenuExit.addOnActivate( (MenuItem i) => this.quitApp );
-        fileMenu.append(fileMenuExit);
 
 
         sayHi();
         showAll();
     }
 
+    void buildMenus(Box mainBox) {
+
+        MenuBar menuBar = new MenuBar();
+        mainBox.packStart(menuBar, false, false, 0);
+
+        // _File menu
+        MenuItem fileMenuHeader = new MenuItem("_File", true);// true: shortcuts enabled
+        menuBar.append(fileMenuHeader);
+
+        Menu fileMenu = new Menu();
+        fileMenuHeader.setSubmenu(fileMenu);
+
+        MenuItem itemLoad = new MenuItem("_Load", true); 
+        itemLoad.addOnActivate( (MenuItem m) => sayHi("load ..." ) );
+        fileMenu.append(itemLoad);
+
+        MenuItem itemSave = new MenuItem("_Save", true); // true: shortcuts enabled
+        itemSave.addOnActivate( (MenuItem m) => sayHi("save ..." ) );
+        fileMenu.append(itemSave);
+
+        MenuItem itemConfiguration = new MenuItem("_Configuration", true); // true: shortcuts enabled
+        itemConfiguration.addOnActivate( (MenuItem m) => sayHi("configuration ..." ) );
+        fileMenu.append(itemConfiguration);
+
+        MenuItem itemExit = new MenuItem("E_xit", true); // true: shortcuts enabled
+        itemExit.addOnActivate( (MenuItem m) => this.quitApp() );
+        fileMenu.append(itemExit);
+
+        // _View menu
+        MenuItem viewMenuHeader = new MenuItem("_View", true);
+        menuBar.append(viewMenuHeader);
+
+        Menu viewMenu = new Menu();
+        viewMenuHeader.setSubmenu(viewMenu);
+
+        MenuItem itemWorldMap = new MenuItem("_World", true);
+        itemWorldMap.addOnActivate( (MenuItem m) => sayHi("world ...") );
+        viewMenu.append(itemWorldMap); 
+
+        // _Help menu
+        MenuItem helpMenuHeader = new MenuItem("H_elp",  true);
+        menuBar.append(helpMenuHeader);
+
+        Menu helpMenu = new Menu();
+        helpMenuHeader.setSubmenu(helpMenu);
+
+        MenuItem itemHelp = new MenuItem("_Help", true);
+        itemHelp.addOnActivate( (MenuItem m) => sayHi("help ...") );
+        helpMenu.append(itemHelp);
+
+        MenuItem itemAbout = new MenuItem("_About", true);
+        itemAbout.addOnActivate( (MenuItem m) => this.showAboutDialog() );
+        helpMenu.append(itemAbout);
+    } 
+
+    void showAboutDialog() {
+        import gtk.AboutDialog;
+
+        auto aboutDialog = new AboutDialog();
+        aboutDialog.setTransientFor(this);
+        aboutDialog.setAuthors([ "Emil Nicolaie Perhinschi"]);
+        aboutDialog.setLicense("BSL-1.0 (Boost Software Licence)");
+        aboutDialog.run();
+        aboutDialog.destroy();
+    }
+
+    void showHelp() {
+
+    }
+
+    void showReports() {
+
+    }
 
     void showSize(Button b)
     {
@@ -69,23 +130,29 @@ class AppMainWindow : MainWindow
     void quitApp()
     {
         import std.stdio: writeln;
-
-        string exitMessage = "exitting normally ... bye";
-        writeln(exitMessage);
+        writeln("exitting normally ... bye!");
         Main.quit();
-        
     }
 
-    void sayHi(string message) 
-    {
-        import std.stdio: writefln;
-        writefln("saying %s", message);
-    }
-    void sayHi() 
-    {
-        import std.stdio: writeln;
-
-        string message = "sayHi works";
-        writeln(message);
-    }
 }
+
+void sayHi(string message) 
+{
+    import std.stdio: writefln;
+    writefln("saying %s", message);
+}
+
+void sayHi() 
+{
+    import std.stdio: writeln;
+
+    string message = "sayHi works";
+    writeln(message);
+}
+
+struct ItemData {
+    string label;
+    void delegate (MenuItem i) action;
+}
+
+

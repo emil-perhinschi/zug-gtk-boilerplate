@@ -4,10 +4,9 @@
 		"Emil Nicolaie Perhinschi"
 	],
 	"dependencies": {
-		"gtk-d": "~>3.9.0",
-		"zug-tap": "~>0.1.1"
+		"gtk-d": "~>3.9.0"
 	},
 	"description": "boilerplate frontend in Gtk",
 	"copyright": "Copyright © 2020, Emil Nicolaie Perhinschi",
-	"license": "proprietary"
+	"license": "BSL-1.0"
 }
