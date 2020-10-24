@@ -205,7 +205,7 @@ class MySourceView : SourceView
         if ( source_language !is null )
         {
             import std.stdio: writefln;
-            this.sourceBuffer.setLanguage(dLang);
+            this.sourceBuffer.setLanguage(source_language);
             this.sourceBuffer.setHighlightSyntax(true);
         }
 
