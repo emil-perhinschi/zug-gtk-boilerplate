@@ -1,4 +1,4 @@
-module zug.frontend.gtk.EditorView;
+module zug.frontend.gtk.Editor;
 
 // private import gsv.SourceMark;
 // private import gsv.SourceStyleScheme;
@@ -8,20 +8,20 @@ import gsv.SourceView;
 import gtk.ScrolledWindow;
 
 //source https://gtkdcoding.com/2019/09/10/0069-textview-and-textbuffer.html
-class ScrolledTextWindow : ScrolledWindow
+class Editor : ScrolledWindow
 {
-	MySourceView mySourceView;
+	MySourceView source_view;
 	
-	this()
+	this(string file_path = "")
 	{
 		super();
 		
-		mySourceView = new MySourceView();
-		add(mySourceView);
+		source_view = new MySourceView(file_path);
+		add(source_view);
 		
-	} // this()
+	}
 	
-} // class ScrolledTextWindow
+}
 
 
 class MySourceView : SourceView
@@ -30,34 +30,43 @@ class MySourceView : SourceView
     import gsv.SourceLanguageManager;
     import gsv.SourceLanguage;
 
-	SourceBuffer sourceBuffer;
-	string content = "I take exception to your code.";
+	SourceBuffer source_buffer;
+    string file_path = "";
+	string content = "";
 	
-	this()
+	this( string file_path = "")
 	{
+        import std.file: readText;
+
 		super();
-		this.sourceBuffer = getBuffer();
-		this.sourceBuffer.setText(content);
-        this.setShowLineNumbers(true);
+		this.source_buffer = this.getBuffer();
+        if (file_path != "") {
+            this.content = readText(file_path);
+            import std.stdio: writeln;
+            writeln(this.content);
+            this.source_buffer.setText(this.content);
+        } else {
+		    this.source_buffer.setText(this.content);
+        }
+
+        this.setShowLineNumbers(false);
         this.setInsertSpacesInsteadOfTabs(true);
         this.setTabWidth(4);
-        this.setHighlightCurrentLine(true);
+        this.setHighlightCurrentLine(false);
 
         SourceLanguageManager slm = new SourceLanguageManager();
-        SourceLanguage source_language = slm.getLanguage("perl");
+        SourceLanguage source_language = slm.getLanguage("d");
 
         if ( source_language !is null )
         {
-            import std.stdio: writefln;
-            this.sourceBuffer.setLanguage(source_language);
-            this.sourceBuffer.setHighlightSyntax(true);
+            this.source_buffer.setLanguage(source_language);
+            this.source_buffer.setHighlightSyntax(true);
         }
 
         //sourceView.modifyFont("Courier", 9);
-        this.setRightMarginPosition(72);
-        this.setShowRightMargin(true);
+        // this.setRightMarginPosition(72);
+        // this.setShowRightMargin(true);
         this.setAutoIndent(true);
-
 	}
 
 }
