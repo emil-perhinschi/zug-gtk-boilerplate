@@ -193,6 +193,21 @@ void load_file(AppMainWindow app_window, MenuItem menu_item) {
     // app_window.tab_container.show
 }
 
+// TODO reads all the file in one go, not the right way
 void save_file(AppMainWindow app_window, MenuItem menu_item) {
+    import std.file: copy, write;
 
+    uint current_page_id = app_window.tab_container.getCurrentPage();
+    writeln("Current page id: ", current_page_id);
+    
+    auto editor = cast(Editor) app_window.tab_container.getNthPage(current_page_id);
+    writeln("Current file path: ", editor.source_view.file_path);
+
+    // TODO add checks if file still exists etc.
+    string file_path = editor.source_view.file_path;
+    string file_backup_path = file_path ~ ".bkp";
+    file_path.copy(file_backup_path);
+    string current_content = editor.get_current_content();
+    writeln("=====================\n", current_content, "\n=====================");
+    file_path.write(current_content);
 }

@@ -13,7 +13,7 @@ class TabContainer : Notebook
 {
 	PositionType tabPosition = PositionType.TOP;
 
-	Editor[string] tabs;
+	Editor[] tabs;
 	
 	this()
 	{
@@ -22,7 +22,7 @@ class TabContainer : Notebook
 
         Label tab_label = new Label("Untitled");
 		Editor editor = new Editor();
-        editor.source_view.source_buffer = source_view.getBuffer();
+        editor.source_view.source_buffer = editor.source_view.getBuffer();
         editor.source_view.source_buffer.setText(" placeholder text ");
 		this.appendPage(editor, tab_label);
         // TODO: if there is a list of tabs saved use it to load, else show default tab

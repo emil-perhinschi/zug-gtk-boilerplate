@@ -20,6 +20,10 @@ class Editor : ScrolledWindow
 		add(source_view);
 		
 	}
+
+    string get_current_content() {
+        return this.source_view.source_buffer.getText();
+    }
 	
 }
 
@@ -36,15 +40,17 @@ class MySourceView : SourceView
 	
 	this( string file_path = "")
 	{
-        import std.file: readText;
+        // I'm confused from where is readText taken, so static so I know
+        static import std.file;
 
 		super();
 		this.source_buffer = this.getBuffer();
         if (file_path != "") {
-            this.content = readText(file_path);
+            this.content = std.file.readText(file_path);
             import std.stdio: writeln;
             writeln(this.content);
             this.source_buffer.setText(this.content);
+            this.file_path = file_path;
         } else {
 		    this.source_buffer.setText(this.content);
         }
