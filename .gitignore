@@ -13,4 +13,4 @@ zug-gtk-frontend-test-*
 *.obj
 *.lst
 zug-gtk-boilerplate
-
+*.bkp
