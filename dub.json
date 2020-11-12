@@ -4,7 +4,8 @@
 		"Emil Nicolaie Perhinschi"
 	],
 	"dependencies": {
-		"gtk-d": "~>3.9.0"
+		"gtk-d": "~>3.9.0",
+		"zug-data": { "path": "../zug-data" }
 	},
 	"description": "boilerplate frontend in Gtk",
 	"copyright": "Copyright © 2020, Emil Nicolaie Perhinschi",

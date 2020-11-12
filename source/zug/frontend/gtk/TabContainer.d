@@ -5,27 +5,34 @@ import gsv.SourceView;
 import gtk.Label;
 
 import zug.frontend.gtk.Editor;
+import zug.frontend.gtk.WorldMap;
 
 //DEBUG
 import std.stdio: writeln;
 
 class TabContainer : Notebook
 {
+    import gtk.ScrolledWindow;
+
 	PositionType tabPosition = PositionType.TOP;
 
-	Editor[] tabs;
+	// ScrolledWindow[] tabs;
 	
 	this()
 	{
 		super();
 		setTabPos(tabPosition);
 
+        WorldMapContainer world_map_container = new WorldMapContainer();
+        this.appendPage(world_map_container, new Label("World Map"));
+        // TODO: if there is a list of tabs saved use it to load, else show default tab
+
         Label tab_label = new Label("Untitled");
 		Editor editor = new Editor();
         editor.source_view.source_buffer = editor.source_view.getBuffer();
         editor.source_view.source_buffer.setText(" placeholder text ");
 		this.appendPage(editor, tab_label);
-        // TODO: if there is a list of tabs saved use it to load, else show default tab
+     
     }
 
     void add_new_code_tab(string label,  string file_path) {
