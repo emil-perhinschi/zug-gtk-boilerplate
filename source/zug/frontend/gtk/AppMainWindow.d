@@ -29,13 +29,14 @@ class AppMainWindow : MainWindow
     AppStatusBar status_bar;
     this() 
     {
+        
         super(title);
 
         bool expand = true;
         bool fill = true;
         uint padding = 0;  
 
-        setDefaultSize(500, 300);
+        this.maximize();
         addOnDestroy( (Widget w) => this.quitApp() );
 
         this.main_box = new Box(Orientation.VERTICAL, 0);         
@@ -210,4 +211,19 @@ void save_file(AppMainWindow app_window, MenuItem menu_item) {
     string current_content = editor.get_current_content();
     writeln("=====================\n", current_content, "\n=====================");
     file_path.write(current_content);
+}
+
+
+void screen_misc_info() {
+    import gdk.Display;
+    import gdk.Screen;
+
+    Display display = Display.getDefault();
+    Screen screen = display.getDefaultScreen();
+    writeln("resolution: ", screen.getResolution() );
+    writeln("screen width: ", screen.getWidth);
+    writeln("screen height: ", screen.getHeight);
+    writeln("screen n monitors: ", screen.getNMonitors);
+    writeln("screen number: ", screen.getNumber());
+
 }
