@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+</head>
+
+<body>
+<div id="ui_container">
+    <div id="commands">
+        <input type="button" onclick="game_start()" value="Start"/>
+        <input type="button" onclick="game_pause()" value="Pause"/>
+        <input type="button" onclick="game_load(2)" value="Load save_2"/>
+        <input type="button" onclick="game_load(1)" value="Load save_1"/>
+        <input type="button" onclick="game_save(1)" value="Save 1"/>
+        <input type="button" onclick="game_save(2)" value="Save 2"/>
+        <input type="button" onclick="saves_list()" value="List saves"/>
+        <input type="button" onclick="next_turn()" value="Next turn"/>
+    </div>
+    <div id="zoom">
+        <input type="button" onclick="zoom_out()" value="Zoom out"/>
+        <input type="button" onclick="zoom_in()" value="Zoom in"/>
+    </div>
+
+    <div id="map_container">
+        <canvas
+            id="game"
+            width="<%= htmlWebpackPlugin.options.viewport_width %>"
+            height="<%= htmlWebpackPlugin.options.viewport_height %>"
+        ></canvas>
+    </div>
+    <div id="world_map">
+        <canvas
+            id="world_map_canvas"
+            width="<%= htmlWebpackPlugin.options.full_map_width %>"
+            height="<%= htmlWebpackPlugin.options.full_map_height %>"
+        ></canvas>
+    </div>
+    <div id="context_info">
+        <div id="terrain_info"><div>
+        <div id="units_info"><div>
+        <div id="landmarks_info"><div>
+    </div>
+    <div id="entities_info">
+        <div id="towns_list"></div>
+        <div id="units_list"></div>
+        <div id="console_area"></div>
+    </div>
+
+</div>
+</body>
+</html>
