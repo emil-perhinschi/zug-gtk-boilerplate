@@ -42,6 +42,7 @@ class WorldMap : DrawingArea
 	Matrix!int raw_data;
 	Pixbuf[][] tiles;
 	Pixbuf background;
+	Pixbuf[16] map_palette;
 	int tile_size = 40;
 	immutable size_t width = 32;
 	immutable size_t height = 18;
@@ -54,16 +55,11 @@ class WorldMap : DrawingArea
 		immutable int seed = 12_345_678;
 		this.raw_data = generate_random_map_data(this.width, this.height, seed);
 		writeln("generated random map data");
+		this.map_palette = map_palette_init(this.tile_size);
+		writeln("initialized_map_pallete");
 		this.tiles = init_tiles(this.tile_size);
 		writeln("initialized tiles");
-		this.background = new Pixbuf(
-			GdkColorspace.RGB, // GdkColorspace colorspace
-			true, // bool hasAlpha
-			8,  // int bitsPerSample
-			this.tile_size, // int width
-			this.tile_size  // int height
-		);
-		this.background.fill(0x0000ffff);
+		import std.traits;
 		addOnDraw(&onDraw);
 	} 
 	
@@ -92,8 +88,8 @@ class WorldMap : DrawingArea
 		for (size_t y = 0; y < this.height; y++) {
 			for (size_t x = 0; x < this.width; x++) {
 				int value = this.raw_data.get(x,y);
-				Pixbuf tile = this.tiles[value][0].copy();
-				Pixbuf tile_background = this.background.copy();
+				Pixbuf tile = this.tiles[value][0];
+				Pixbuf tile_background = this.map_palette[value].copy();
 				writeln("back width: ", tile_background.getWidth);
 				writeln("tile width: ", tile.getWidth);
 				tile.composite(
@@ -271,22 +267,40 @@ Pixbuf[][] init_tiles(int tile_size) {
 	return tiles;
 }
 
+Pixbuf[16] map_palette_init(int tile_size) {
+	import std.algorithm: map;
+	import std.array: array;
+	import gdk.Pixbuf;
 
-// const map_palette_init = [
-//     [ 23,  87, 126], //"#17577e"
-//     [ 61, 108,  66], //"#3d6c42"
-//     [ 63, 110,  66], //"#3f6e42"
-//     [ 71, 115,  64], //"#477340"
-//     [ 82, 123,  62], //"#527b3e"
-//     [ 97, 133,  59], //"#61853b"
-//     [114, 144,  56], //"#729038"
-//     [143, 164,  51], //"#8fa433"
-//     [175, 186,  45], //"#afba2d"
-//     [184, 192,  43], //"#b8c02b"
-//     [169, 166,  42], //"#a9a62a"
-//     [141, 115,  41], //"#8d7329"
-//     [117,  71,  39], //"#754727"
-//     [107,  53,  39], //"#6b3527"
-//     [131,  86,  74], //"#83564a"
-//     [195, 173, 167]  //"#c3ada7"
-// ]
+	uint[] colors = [
+		0x17577eff, //     [ 23,  87, 126],
+		0x3d6c42ff, //     [ 61, 108,  66],
+		0x3f6e42ff, //     [ 63, 110,  66],
+		0x477340ff, //     [ 71, 115,  64],
+		0x527b3eff, //     [ 82, 123,  62],
+		0x61853bff, //     [ 97, 133,  59],
+		0x729038ff, //     [114, 144,  56],
+		0x8fa433ff, //     [143, 164,  51],
+		0xafba2dff, //     [175, 186,  45],
+		0xb8c02bff, //     [184, 192,  43],
+		0xa9a62aff, //     [169, 166,  42],
+		0x8d7329ff, //     [141, 115,  41],
+		0x754727ff, //     [117,  71,  39],
+		0x6b3527ff, //     [107,  53,  39],
+		0x83564aff, //     [131,  86,  74],
+		0xc3ada7ff //     [195, 173, 167] 
+	];
+
+	Pixbuf[16] palette = colors.map!(rgba => make_pixbuf_from_rgba(rgba, tile_size) ).array;
+	return palette;
+}
+
+Pixbuf make_pixbuf_from_rgba(uint rgba, int tile_size) {
+	import gdk.Pixbuf;
+
+	bool has_alpha = true;
+	int bits_per_sample = 8;
+	Pixbuf pixbuf = new Pixbuf( GdkColorspace.RGB, has_alpha, bits_per_sample, tile_size, tile_size );
+	pixbuf.fill(rgba);
+	return pixbuf;
+}
