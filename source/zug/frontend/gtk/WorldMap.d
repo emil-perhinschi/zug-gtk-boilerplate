@@ -50,7 +50,7 @@ class WorldMap : DrawingArea
 
     Timeout _timeout;
 	int number = 1;
-	int fps = 1000 / 24; // 12 frames per second
+	int fps = 1000 / 30; // 30 frames per second
 
     this() {
 		immutable int seed = 12_345_678;
@@ -85,15 +85,6 @@ class WorldMap : DrawingArea
 		number++;
 
 		writeln("drawing ");
-		// for (size_t y = 0; y < this.height; y++) {
-		// 	for (size_t x = 0; x < this.width; x++) {
-		// 		int value = this.raw_data.get(x,y);
-		// 		Pixbuf tile = this.tiles[value][0];
-		// 		context.setSourcePixbuf(tile, x*this.tile_size, y*this.tile_size);
-		// 		context.paint();
-		// 	}
-		// }
-		
 		context.setSourcePixbuf(this.rendered_map, 0, 0);
 		context.paint();
 		return(true);
