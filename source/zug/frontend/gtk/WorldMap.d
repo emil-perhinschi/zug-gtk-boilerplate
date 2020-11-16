@@ -40,24 +40,24 @@ class WorldMap : DrawingArea
     import gtk.Widget;
 
 	Matrix!int raw_data;
-	Pixbuf[][] tiles;
-	Pixbuf background;
-	Pixbuf[16] map_palette;
-	int tile_size = 40;
-	immutable size_t width = 32;
-	immutable size_t height = 18;
+	Pixbuf[2][16] tiles;
+
+	Pixbuf rendered_map;
+
+	int tile_size = 20;
+	immutable size_t width = 64;
+	immutable size_t height = 36;
 
     Timeout _timeout;
 	int number = 1;
-	int fps = 1000 / 3; // 12 frames per second
+	int fps = 1000 / 24; // 12 frames per second
 
     this() {
 		immutable int seed = 12_345_678;
 		this.raw_data = generate_random_map_data(this.width, this.height, seed);
 		writeln("generated random map data");
-		this.map_palette = map_palette_init(this.tile_size);
-		writeln("initialized_map_pallete");
 		this.tiles = init_tiles(this.tile_size);
+		this.rendered_map = pre_render_map(this.raw_data, this.tile_size);
 		writeln("initialized tiles");
 		import std.traits;
 		addOnDraw(&onDraw);
@@ -85,29 +85,17 @@ class WorldMap : DrawingArea
 		number++;
 
 		writeln("drawing ");
-		for (size_t y = 0; y < this.height; y++) {
-			for (size_t x = 0; x < this.width; x++) {
-				int value = this.raw_data.get(x,y);
-				Pixbuf tile = this.tiles[value][0];
-				Pixbuf tile_background = this.map_palette[value].copy();
-				writeln("back width: ", tile_background.getWidth);
-				writeln("tile width: ", tile.getWidth);
-				tile.composite(
-					tile_background, //Pixbuf dest
-					0, 0, // int destX, int destY,
-					this.tile_size, // int destWidth
-					this.tile_size, // int destHeight
-					0, 0, // double offsetX, double offsetY
-					1, 1, // double scaleX, double scaleY
-					GdkInterpType.NEAREST, // GdkInterpType interpType
-					255 // int overallAlpha
-				);
-				context.setSourcePixbuf(tile_background, x*this.tile_size, y*this.tile_size);
-				context.paint();
-			}
-		}
+		// for (size_t y = 0; y < this.height; y++) {
+		// 	for (size_t x = 0; x < this.width; x++) {
+		// 		int value = this.raw_data.get(x,y);
+		// 		Pixbuf tile = this.tiles[value][0];
+		// 		context.setSourcePixbuf(tile, x*this.tile_size, y*this.tile_size);
+		// 		context.paint();
+		// 	}
+		// }
 		
-		
+		context.setSourcePixbuf(this.rendered_map, 0, 0);
+		context.paint();
 		return(true);
 	} 
 
@@ -133,7 +121,7 @@ Matrix!int generate_random_map_data(size_t width, size_t height, int seed) {
 	  - add the noise layer to the empty canvas
 	*/
 	Matrix!int elevation = Matrix!int(width, height);
-	int mountains_no = 5;
+	int mountains_no = 2;
 	int added_mountains = 0;
 	while (added_mountains <= mountains_no) {
 		// check if too close to the edge
@@ -157,10 +145,11 @@ Matrix!int generate_random_map_data(size_t width, size_t height, int seed) {
 		added_mountains++;
 	}
 
-    Matrix!int random_mask = Matrix!int( random_array!int(width*height, 0, 64, seed), width);
+    Matrix!int random_mask = Matrix!int( random_array!int(width*height, 0, 12, seed), width);
 	int smoothing_window_size = 4;
-	return elevation.add(random_mask)
+	return elevation
 		.moving_average!(int,int)(smoothing_window_size, &shaper_circle!int, &moving_average_simple_calculator!(int, int))
+		.add(random_mask)
 		.normalize(0,8);
 }
 
@@ -218,19 +207,36 @@ Pixbuf to_pixbuf(Matrix!int matrix) {
 }
 
 
-Pixbuf[][] init_tiles(int tile_size) {
+Pixbuf pre_render_map(Matrix!int raw_data, int tile_size) {
+	import gdk.Pixbuf;
+
+	Pixbuf[2][16] tiles = init_tiles(tile_size);
+	int width = cast(int) raw_data.width * tile_size;
+	int height = cast(int) raw_data.height * tile_size;
+	Pixbuf rendered_map = new Pixbuf(GdkColorspace.RGB, true, 8, width, height);
+
+	for (int y = 0; y < raw_data.height; y++) {
+		for (int x = 0; x < raw_data.width; x++) {
+			int value = raw_data.get(x,y);
+			Pixbuf tile = tiles[value][1];
+			int dest_x = x * tile_size;
+			int dest_y = y * tile_size;
+			tile.copyArea(0, 0, tile_size, tile_size, rendered_map, dest_x, dest_y);
+		}
+	}
+	return rendered_map;
+}
+
+
+Pixbuf[2][16] init_tiles(int tile_size) {
     import gdk.Pixbuf;
 
-	Pixbuf sea = new Pixbuf(GdkColorspace.RGB,true, 8, 20,20);
-	sea.fill(0x17577eff);
-	Pixbuf unseen_sea = new Pixbuf(GdkColorspace.RGB,true, 8, 20,20);
-	unseen_sea.fill(0x3380ffff);
+	// Pixbuf sea = new Pixbuf(GdkColorspace.RGB,true, 8, 20,20);
+	// sea.fill(0x17577eff);
+	// Pixbuf unseen_sea = new Pixbuf(GdkColorspace.RGB,true, 8, 20,20);
+	// unseen_sea.fill(0x3380ffff);
 
-    Pixbuf[][] tiles = [
-		[
-			sea,
-			unseen_sea
-		],
+    Pixbuf[][] tiles = [ [],
         [ 
             new Pixbuf("temp/assets/static/sprites/swamp_1_dark.png",tile_size, tile_size, true),
             new Pixbuf("temp/assets/static/sprites/swamp_1.png",tile_size, tile_size, true)
@@ -262,9 +268,38 @@ Pixbuf[][] init_tiles(int tile_size) {
         [
             new Pixbuf("temp/assets/static/sprites/lowlands_forest_topdown_tileable_dark.png",tile_size, tile_size, true),
             new Pixbuf("temp/assets/static/sprites/lowlands_forest_topdown_tileable.png",tile_size, tile_size, true)
-        ]
+        ], [],[],[],[],[],[],[],[]
     ];
-	return tiles;
+
+	auto palette = map_palette_init(tile_size);
+	Pixbuf[2][16] tiles_with_background;
+	for (size_t i = 0; i < palette.length; i++) {
+		writeln("i is: ", i, " length is : ", tiles[i].length);
+		if (tiles[i].length == 2) { // tiles[] element looks like expected
+			// copy because composite below changes it
+			Pixbuf foreground_tile = tiles[i][1].copy;
+			Pixbuf background_tile = palette[i];
+			// the result is "dest" 
+			foreground_tile.composite(
+				background_tile, //Pixbuf dest
+				0, 0, // int destX, int destY,
+				tile_size, // int destWidth
+				tile_size, // int destHeight
+				0, 0, // double offsetX, double offsetY
+				1, 1, // double scaleX, double scaleY
+				GdkInterpType.NEAREST, // GdkInterpType interpType
+				255 // int overallAlpha
+			);
+
+			tiles_with_background[i][0] = background_tile.copy;
+			tiles_with_background[i][1] = background_tile.copy;
+		} else { // no more tiles, only backgrounds 
+			tiles_with_background[i][0] = palette[i].copy;
+			tiles_with_background[i][1] = palette[i].copy;
+		}
+	}
+
+	return tiles_with_background;
 }
 
 Pixbuf[16] map_palette_init(int tile_size) {
@@ -291,7 +326,7 @@ Pixbuf[16] map_palette_init(int tile_size) {
 		0xc3ada7ff //     [195, 173, 167] 
 	];
 
-	Pixbuf[16] palette = colors.map!(rgba => make_pixbuf_from_rgba(rgba, tile_size) ).array;
+	Pixbuf[16] palette = colors.map!( rgba => make_pixbuf_from_rgba(rgba, tile_size) ).array;
 	return palette;
 }
 
