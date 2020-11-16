@@ -1,5 +1,5 @@
 import std.stdio;
-import zug.frontend.gtk.mainWindow;
+import zug.frontend.gtk.AppMainWindow;
 
 import gtk.MainWindow;
 import gtk.Main;
