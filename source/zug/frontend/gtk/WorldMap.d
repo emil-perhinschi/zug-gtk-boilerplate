@@ -2,12 +2,13 @@ module zug.frontend.gtk.WorldMap;
 
 
 import gtk.DrawingArea;
-import gtk.ScrolledWindow;
+
 import gdk.Pixbuf;
 import cairo.Context;
 import cairo.ImageSurface;
 import gdk.Cairo;
 import cairo.Surface;
+import gtk.Box;
 
 import zug.pixmap_util;
 import zug.matrix;
@@ -16,16 +17,35 @@ import zug.matrix;
 import std.stdio: writeln;
 
 //source https://gtkdcoding.com/2019/09/10/0069-textview-and-textbuffer.html
-class WorldMapContainer : ScrolledWindow
+class WorldMapContainer : Box
 {
-    import gtk.Widget;
+    // import gtk.Widget;
 
 	WorldMap world_map;
 	
 	this()
 	{
+        import gtk.VPaned;
+        import gtk.Entry;
+
+        super(Orientation.HORIZONTAL, 5);
+
+        Box map_box = new Box(Orientation.HORIZONTAL, 5);
+        map_box.setBorderWidth(5);
+        
+        // this.packStart(map_box, true, true, 0);
+        this.packStart(map_box, true, true, 0);
+
 		world_map = new WorldMap();
-		this.add(world_map);
+
+        Box controls_pane = new Box(Orientation.VERTICAL,0);
+
+        Entry entry = new Entry();
+        entry.setText("this is an entry");
+        controls_pane.add(entry);
+
+		map_box.packStart(world_map, true, true, 5);
+        map_box.packStart(controls_pane, false, false, 5);
 	}
 	
 }
@@ -59,26 +79,12 @@ class WorldMap : DrawingArea
 		this.tiles = init_tiles(this.tile_size);
 		this.rendered_map = pre_render_map(this.raw_data, this.tile_size);
 		writeln("initialized tiles");
-		import std.traits;
 		addOnDraw(&onDraw);
 	} 
 	
-
-	/// how to show image
-	// bool onDraw(Scoped!Context context, Widget w) {
-	// 	import zug.pixmap_util;
-	// 	Pixbuf pixbuf = new Pixbuf("temp/assets/static/sprites//home/emil/safedelete/canvas.png");
-	// 	context.setSourcePixbuf(pixbuf, 0,0);
-	// 	context.paint();
-	// 	return true;
-	// }
-
 	bool onDraw(Scoped!Context context, Widget widget) {
 		import std.stdio: writeln;
-		if(_timeout is null) {
-			_timeout = new Timeout(fps, &onFrameElapsed, false);
-		}
-		
+	
 		if(number > 24) {// number range: 1 - 24
 			number = 1;
 		}
@@ -87,13 +93,6 @@ class WorldMap : DrawingArea
 		writeln("drawing ");
 		context.setSourcePixbuf(this.rendered_map, 0, 0);
 		context.paint();
-		return(true);
-	} 
-
-
-	bool onFrameElapsed()
-	{
-		queueDraw();
 		return(true);
 	} 
 }
