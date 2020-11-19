@@ -27,6 +27,7 @@ class WorldMapContainer : Box
 	{
         import gtk.VPaned;
         import gtk.Entry;
+        import gtk.Label;
 
         super(Orientation.HORIZONTAL, 5);
 
@@ -37,18 +38,24 @@ class WorldMapContainer : Box
         this.packStart(map_box, true, true, 0);
 
 		world_map = new WorldMap();
-
-        Box controls_pane = new Box(Orientation.VERTICAL,0);
-
+        // world_map.setSizeRequest(1200,720);
+        Box controls_box = new Box(Orientation.VERTICAL,0);
+        controls_box.setBorderWidth(2);
+        controls_box.setSizeRequest(300,700);
+        Box entry_box = new Box(Orientation.HORIZONTAL, 0);
+        Label label = new Label("width");
         Entry entry = new Entry();
         entry.setText("this is an entry");
-        controls_pane.add(entry);
+        entry_box.packStart(label, false, false, 0);
+        entry_box.packEnd(entry, true, true, 0);
+        controls_box.packStart(entry_box, false, false, 0);
 
 		map_box.packStart(world_map, true, true, 5);
-        map_box.packStart(controls_pane, false, false, 5);
+        map_box.packStart(controls_box, false, true, 5);
 	}
 	
 }
+
 
 
 class WorldMap : DrawingArea
@@ -65,8 +72,8 @@ class WorldMap : DrawingArea
 	Pixbuf rendered_map;
 
 	int tile_size = 20;
-	immutable size_t width = 64;
-	immutable size_t height = 36;
+	immutable size_t width = 128;
+	immutable size_t height = 72;
 
     Timeout _timeout;
 	int number = 1;
