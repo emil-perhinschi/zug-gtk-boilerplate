@@ -16,13 +16,23 @@ import zug.matrix;
 ///DEBUG
 import std.stdio: writeln;
 
+class WorldData {
+    Matrix!int data;
+    this(Matrix!int data ) { this.data = data; }
+
+    this(int width, int height, int seed) {
+        this.data = generate_random_map_data(width, height, seed);        
+    }
+}
+
 //source https://gtkdcoding.com/2019/09/10/0069-textview-and-textbuffer.html
 class WorldMapContainer : Box
 {
     // import gtk.Widget;
 
 	WorldMap world_map;
-	
+    WorldData world_data;
+
 	this()
 	{
         import gtk.VPaned;
@@ -72,8 +82,8 @@ class WorldMap : DrawingArea
 	Pixbuf rendered_map;
 
 	int tile_size = 20;
-	immutable size_t width = 128;
-	immutable size_t height = 72;
+	immutable size_t width = 64;
+	immutable size_t height = 36;
 
     Timeout _timeout;
 	int number = 1;
@@ -107,7 +117,7 @@ class WorldMap : DrawingArea
 /// width and height in tiles, size of tile in pixels
 Matrix!int generate_random_map_data(size_t width, size_t height, int seed) {
 	import std.random: Random, unpredictableSeed, uniform;
-	auto rnd = Random(seed);
+	auto rnd = Random(unpredictableSeed);
 
 	/* TODO later
 	  - draw empty canvas
@@ -117,40 +127,43 @@ Matrix!int generate_random_map_data(size_t width, size_t height, int seed) {
 	  - create a noise layer
 	  - add the noise layer to the empty canvas
 	*/
-	Matrix!int elevation = Matrix!int(width, height);
-	int mountains_no = 2;
+    size_t elevation_width = width/2;
+    size_t elevation_height = height/2;
+	Matrix!int elevation = Matrix!int(elevation_width, elevation_height);
+	int mountains_no = 3;
 	int added_mountains = 0;
 	while (added_mountains <= mountains_no) {
 		// check if too close to the edge
-		int distance_to_edge = 5;
+		int distance_to_edge = 7;
 
-		size_t x = uniform(0,width, rnd);
+		size_t x = uniform(0,elevation_width, rnd);
 		if (
 			x < distance_to_edge 
-			|| x > width - distance_to_edge 
+			|| x > elevation_width - distance_to_edge 
 		) { continue; }
 
-		size_t y = uniform(0,height, rnd);
+		size_t y = uniform(0,elevation_height, rnd);
 		if (
 			y < distance_to_edge 
-			|| y > height - distance_to_edge
+			|| y > elevation_height - distance_to_edge
 		) { continue; }
 
-		int value = uniform(128,255, rnd);
+		int value = uniform(64,255, rnd);
 		elevation.set(x,y,value);
-
+        writeln("added mountain");
 		added_mountains++;
 	}
 
-    Matrix!int random_mask = Matrix!int( random_array!int(width*height, 0, 12, seed), width);
-	int smoothing_window_size = 4;
+    Matrix!int random_mask = Matrix!int( random_array!int(elevation_width*elevation_height, 0, 15, seed), elevation_width);
+	int smoothing_window_size = 6;
 	return elevation
-		.moving_average!(int,int)(smoothing_window_size, &shaper_circle!int, &moving_average_simple_calculator!(int, int))
-		.add(random_mask)
-		.normalize(0,8);
+        .add(random_mask)
+        .stretch_bilinear(2,2)
+        .moving_average!(int,int)(smoothing_window_size, &shaper_circle!int, &moving_average_simple_calculator!(int, int))
+		.normalize(0,15);
 }
 
-
+// TODO make the edges be water and randomize a bit so they're not square
 
 ///
 Matrix!int build_noise_map(size_t width, size_t height, int seed) {
