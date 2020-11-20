@@ -117,7 +117,7 @@ class WorldMap : DrawingArea
 /// width and height in tiles, size of tile in pixels
 Matrix!int generate_random_map_data(size_t width, size_t height, int seed) {
 	import std.random: Random, unpredictableSeed, uniform;
-	auto rnd = Random(unpredictableSeed);
+	auto rnd = Random(seed);
 
 	/* TODO later
 	  - draw empty canvas
@@ -133,34 +133,25 @@ Matrix!int generate_random_map_data(size_t width, size_t height, int seed) {
 	int mountains_no = 3;
 	int added_mountains = 0;
 	while (added_mountains <= mountains_no) {
-		// check if too close to the edge
-		int distance_to_edge = 7;
+		// should not be too close to the edge
+		int distance_to_edge = 3;
 
-		size_t x = uniform(0,elevation_width, rnd);
-		if (
-			x < distance_to_edge 
-			|| x > elevation_width - distance_to_edge 
-		) { continue; }
-
-		size_t y = uniform(0,elevation_height, rnd);
-		if (
-			y < distance_to_edge 
-			|| y > elevation_height - distance_to_edge
-		) { continue; }
-
-		int value = uniform(64,255, rnd);
+		size_t x = uniform(distance_to_edge, elevation_width - distance_to_edge, rnd);
+		size_t y = uniform(distance_to_edge, elevation_height - distance_to_edge, rnd);
+		
+        int value = uniform(128,255, rnd);
+        debug writeln("mountain coordinates x: ", x, ", y: ", y, ", value: ", value);
 		elevation.set(x,y,value);
-        writeln("added mountain");
 		added_mountains++;
 	}
 
     Matrix!int random_mask = Matrix!int( random_array!int(elevation_width*elevation_height, 0, 15, seed), elevation_width);
-	int smoothing_window_size = 6;
+	int smoothing_window_size = 4;
 	return elevation
         .add(random_mask)
         .stretch_bilinear(2,2)
         .moving_average!(int,int)(smoothing_window_size, &shaper_circle!int, &moving_average_simple_calculator!(int, int))
-		.normalize(0,15);
+		.normalize!int(0,15);
 }
 
 // TODO make the edges be water and randomize a bit so they're not square
