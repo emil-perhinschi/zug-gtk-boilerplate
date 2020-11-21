@@ -18,6 +18,9 @@ import std.stdio: writeln;
 
 class WorldData {
     CartesianMatrix!int data;
+    size_t viewport_width = 64;
+    size_t viewport_height = 32;
+
     this(CartesianMatrix!int data ) { this.data = data; }
 
     this(int width, int height, int seed) {
@@ -25,14 +28,13 @@ class WorldData {
         this.data = CartesianMatrix!int(raw_heightmap.data, width, Offset(width/2, height/2));
     }
 
-    Matrix!int get(long top_x, long top_y, size_t width, size_t height) {
-        return this.data.window(CartesianCoordinates(top_x, top_y), width, height);
+    Matrix!int get(long top_x, long top_y, size_t viewport_width, size_t viewport_height) {
+        return this.data.window(CartesianCoordinates(top_x, top_y), viewport_width, viewport_height);
     }
 }
 
 //source https://gtkdcoding.com/2019/09/10/0069-textview-and-textbuffer.html
-class WorldMapContainer : Box
-{
+class WorldMapContainer : Box{
     // import gtk.Widget;
 
 	WorldMap world_map;
@@ -52,7 +54,7 @@ class WorldMapContainer : Box
         // this.packStart(map_box, true, true, 0);
         this.packStart(map_box, true, true, 0);
 
-		this.world_data = new WorldData(300,300, 123_456_789);
+		this.world_data = new WorldData(640, 360, 123_456);
 
         // world_map.setSizeRequest(1200,720);
         Box controls_box = new Box(Orientation.VERTICAL,0);
@@ -65,8 +67,10 @@ class WorldMapContainer : Box
         entry_box.packStart(label, false, false, 0);
         entry_box.packEnd(entry, true, true, 0);
         controls_box.packStart(entry_box, false, false, 0);
-        this.world_map = new WorldMap(this.world_data.get(0,0, 64,36));
-		map_box.packStart(this.world_map, true, true, 5);
+
+        this.world_map = new WorldMap(this.world_data.get(0,0, 64, 36));
+        
+        map_box.packStart(this.world_map, true, true, 5);
         map_box.packStart(controls_box, false, true, 5);
 	}
 	
@@ -88,15 +92,15 @@ class WorldMap : DrawingArea
 	Pixbuf rendered_map;
 
 	int tile_size = 20;
-	immutable size_t width = 64;
-	immutable size_t height = 36;
+	immutable size_t width = 32;
+	immutable size_t height = 18;
 
     Timeout _timeout;
 	int number = 1;
 	int fps = 1000 / 30; // 30 frames per second
 
     this(Matrix!int raw_data) {
-		immutable int seed = 12_345_678;
+		immutable int seed = 123_456;
 		this.raw_data = raw_data;
 		writeln("generated random map data");
 		this.tiles = init_tiles(this.tile_size);
