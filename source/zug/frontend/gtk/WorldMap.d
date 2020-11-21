@@ -17,11 +17,16 @@ import zug.matrix;
 import std.stdio: writeln;
 
 class WorldData {
-    Matrix!int data;
-    this(Matrix!int data ) { this.data = data; }
+    CartesianMatrix!int data;
+    this(CartesianMatrix!int data ) { this.data = data; }
 
     this(int width, int height, int seed) {
-        this.data = generate_random_map_data(width, height, seed);        
+        Matrix!int raw_heightmap = generate_random_map_data(width, height, seed);
+        this.data = CartesianMatrix!int(raw_heightmap.data, width, Offset(width/2, height/2));
+    }
+
+    Matrix!int get(long top_x, long top_y, size_t width, size_t height) {
+        return this.data.window(CartesianCoordinates(top_x, top_y), width, height);
     }
 }
 
@@ -47,7 +52,8 @@ class WorldMapContainer : Box
         // this.packStart(map_box, true, true, 0);
         this.packStart(map_box, true, true, 0);
 
-		world_map = new WorldMap();
+		this.world_data = new WorldData(300,300, 123_456_789);
+
         // world_map.setSizeRequest(1200,720);
         Box controls_box = new Box(Orientation.VERTICAL,0);
         controls_box.setBorderWidth(2);
@@ -59,8 +65,8 @@ class WorldMapContainer : Box
         entry_box.packStart(label, false, false, 0);
         entry_box.packEnd(entry, true, true, 0);
         controls_box.packStart(entry_box, false, false, 0);
-
-		map_box.packStart(world_map, true, true, 5);
+        this.world_map = new WorldMap(this.world_data.get(0,0, 64,36));
+		map_box.packStart(this.world_map, true, true, 5);
         map_box.packStart(controls_box, false, true, 5);
 	}
 	
@@ -89,9 +95,9 @@ class WorldMap : DrawingArea
 	int number = 1;
 	int fps = 1000 / 30; // 30 frames per second
 
-    this() {
+    this(Matrix!int raw_data) {
 		immutable int seed = 12_345_678;
-		this.raw_data = generate_random_map_data(this.width, this.height, seed);
+		this.raw_data = raw_data;
 		writeln("generated random map data");
 		this.tiles = init_tiles(this.tile_size);
 		this.rendered_map = pre_render_map(this.raw_data, this.tile_size);
